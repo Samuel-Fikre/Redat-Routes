@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import dynamic from 'next/dynamic'
@@ -30,7 +30,8 @@ interface RouteData {
   legs: RouteLeg[]
 }
 
-export default function MapPage() {
+// Separate client component for search params
+function MapContent() {
   const searchParams = useSearchParams()
   const [routeData, setRouteData] = useState<RouteData | null>(null)
   const [error, setError] = useState<string>('')
@@ -126,5 +127,22 @@ export default function MapPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+// Main page component with Suspense
+export default function MapPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6">
+            <div className="text-center text-muted-foreground">Loading...</div>
+          </CardContent>
+        </Card>
+      </div>
+    }>
+      <MapContent />
+    </Suspense>
   )
 } 
