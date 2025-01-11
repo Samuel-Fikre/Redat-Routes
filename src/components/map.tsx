@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
@@ -31,30 +31,41 @@ export default function MapComponent({ routeData }: MapComponentProps) {
   const mapRef = useRef<L.Map | null>(null)
   const markersRef = useRef<L.Marker[]>([])
   const containerRef = useRef<HTMLDivElement>(null)
+  const [isMapReady, setIsMapReady] = useState(false)
 
+  // Initialize map
   useEffect(() => {
-    // Wait for the container to be rendered
-    if (!containerRef.current) return
+    if (!containerRef.current || mapRef.current) return
 
-    // Initialize map if it doesn't exist
-    if (!mapRef.current) {
-      mapRef.current = L.map(containerRef.current, {
-        center: [9.0222, 38.7468],
-        zoom: 13,
-        layers: [
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-          })
-        ]
-      })
+    const map = L.map(containerRef.current, {
+      center: [9.0222, 38.7468],
+      zoom: 13,
+      layers: [
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap contributors'
+        })
+      ]
+    })
 
-      // Ensure the map container is visible and sized correctly
-      setTimeout(() => {
-        if (mapRef.current) {
-          mapRef.current.invalidateSize()
-        }
-      }, 0)
+    mapRef.current = map
+
+    // Wait for map to be ready
+    map.whenReady(() => {
+      setIsMapReady(true)
+    })
+
+    return () => {
+      map.remove()
+      mapRef.current = null
+      setIsMapReady(false)
     }
+  }, [])
+
+  // Handle markers and bounds
+  useEffect(() => {
+    if (!isMapReady || !mapRef.current) return
+
+    const map = mapRef.current
 
     // Clear existing markers
     markersRef.current.forEach(marker => marker.remove())
@@ -72,25 +83,21 @@ export default function MapComponent({ routeData }: MapComponentProps) {
         })
       })
       .bindPopup(station.name)
-      .addTo(mapRef.current!)
+      .addTo(map)
 
       markersRef.current.push(marker)
       bounds.extend([lat, lng])
     })
 
-    // Fit map to show all markers
+    // Fit bounds only if we have valid bounds
     if (bounds.isValid()) {
-      mapRef.current?.fitBounds(bounds, { padding: [50, 50] })
+      map.invalidateSize()
+      map.fitBounds(bounds, {
+        padding: [50, 50],
+        maxZoom: 15
+      })
     }
-
-    // Cleanup function
-    return () => {
-      if (mapRef.current) {
-        mapRef.current.remove()
-        mapRef.current = null
-      }
-    }
-  }, [routeData])
+  }, [routeData, isMapReady])
 
   return (
     <>
