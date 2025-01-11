@@ -26,7 +26,7 @@ export default function Home() {
   useEffect(() => {
     async function loadPlaces() {
       try {
-        const response = await fetch('http://localhost:8080/places')
+        const response = await fetch('https://redat-backend-production.up.railway.app/places')
         const data = await response.json()
         setPlaces(data.places)
       } catch (error) {
