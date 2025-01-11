@@ -72,7 +72,7 @@ export default function Home() {
       <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-2">
           <h1 className="text-4xl font-bold">Redat</h1>
-          <p className="text-muted-foreground">Calculate your taxi fare in Addis Ababa</p>
+          <p className="text-muted-foreground">Check Taxi Money and Route</p>
         </div>
 
         <form className="space-y-6" onSubmit={handleSubmit}>
@@ -80,7 +80,7 @@ export default function Home() {
             <div className="relative">
               <Input
                 type="text"
-                placeholder="Where are you now?"
+                placeholder="Starting Point"
                 className="w-full"
                 value={from}
                 onChange={(e) => {
@@ -138,12 +138,20 @@ export default function Home() {
             </div>
           </div>
 
-          <Button 
-            type="submit" 
-            className="w-full"
-          >
-            Calculate Fare
-          </Button>
+          <div className="space-y-4">
+            <Button type="submit" className="w-full">
+              Continue
+            </Button>
+            
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => router.push('/contribute')}
+            >
+              Contribute Route Data
+            </Button>
+          </div>
         </form>
       </div>
     </main>
