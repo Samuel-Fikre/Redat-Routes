@@ -46,7 +46,7 @@ export default function MapPage() {
 
     const fetchRoute = async () => {
       try {
-        const response = await fetch(`http://localhost:8080/route-map?from=${from} Station&to=${to} Station`)
+        const response = await fetch(`https://redat-backend-production.up.railway.app/route-map?from=${from} Station&to=${to} Station`)
         const data = await response.json()
         
         if (data.error) {
