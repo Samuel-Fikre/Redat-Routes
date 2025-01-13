@@ -1,8 +1,10 @@
-"use client"
+'use client'
 
 import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import 'leaflet-routing-machine'
+import 'leaflet-routing-machine/dist/leaflet-routing-machine.css'
 
 interface Station {
   name: string
@@ -30,6 +32,7 @@ interface MapComponentProps {
 export default function MapComponent({ routeData }: MapComponentProps) {
   const mapRef = useRef<L.Map | null>(null)
   const markersRef = useRef<L.Marker[]>([])
+  const routingControlRef = useRef<L.Routing.Control | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [isMapReady, setIsMapReady] = useState(false)
 
@@ -99,6 +102,37 @@ export default function MapComponent({ routeData }: MapComponentProps) {
     }
   }, [routeData, isMapReady])
 
+  // Handle routing
+  useEffect(() => {
+    if (!isMapReady || !mapRef.current) return
+
+    const map = mapRef.current
+
+    // Remove existing routing control
+    if (routingControlRef.current) {
+      map.removeControl(routingControlRef.current)
+      routingControlRef.current = null
+    }
+
+    // Add routing
+    if (routeData.route.length >= 2) {
+      const waypoints = routeData.route.map((station) =>
+        L.latLng(station.location.coordinates[1], station.location.coordinates[0])
+      )
+
+      const routingControl = L.Routing.control({
+        waypoints,
+        routeWhileDragging: true,
+        showAlternatives: false,
+        lineOptions: {
+          styles: [{ color: '#6FA1EC', weight: 4 }]
+        }
+      }).addTo(map)
+
+      routingControlRef.current = routingControl
+    }
+  }, [routeData, isMapReady])
+
   return (
     <>
       <style jsx global>{`
@@ -122,8 +156,11 @@ export default function MapComponent({ routeData }: MapComponentProps) {
           width: 100%;
           height: 100%;
         }
+          .leaflet-routing-alt {
+  color: black !important;
+}
       `}</style>
       <div id="map-container" ref={containerRef} />
     </>
   )
-} 
+}
